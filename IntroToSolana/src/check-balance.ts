@@ -5,8 +5,9 @@ export enum API {
     devnet = "devnet",
 }
 
-export async function get_balance(address: PublicKey, api: API) {
-    const connection = new Connection(clusterApiUrl(api));
+export async function get_balance(address: PublicKey, api?: API) {
+    const net = api || API.devnet;
+    const connection = new Connection(clusterApiUrl(net));
     const balanceInLamports = await connection.getBalance(address);
     const balanceInSOL = balanceInLamports / LAMPORTS_PER_SOL;
 

@@ -1,41 +1,28 @@
-import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from "@solana/web3.js";
-import { keypair, PUBLIC_KEY } from "./config";
+import { clusterApiUrl, Connection, Keypair, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from "@solana/web3.js";
 import { API } from "./check-balance";
 
-const sendTo = process.argv[2];
-if (!sendTo) throw Error("Please provide public key to send to");
+export async function transfer_sol(sender: Keypair, receiver: PublicKey, amount: number, network?: API) {
 
-const receiverPubKey = new PublicKey(sendTo);
-const senderPubKey = PUBLIC_KEY;
-const senderKeypair = keypair;
-
-const connection = new Connection(clusterApiUrl(API.devnet));
-
-console.log(`
-Sender: ${PUBLIC_KEY}
-Receiver: ${sendTo}
+    console.log(`
+Sender: ${sender.publicKey.toBase58()}
+Receiver: ${receiver.toBase58()}
 `);
-
-async function transfer_sol() {
-
+    const net = network || API.devnet;
+    const connection = new Connection(clusterApiUrl(net));
     const transaction = new Transaction();
 
-    const LAMPORTS_TO_SEND = 5000;
-
     const sendSOLInstruction = SystemProgram.transfer({
-        fromPubkey: senderPubKey,
-        toPubkey: receiverPubKey,
-        lamports: LAMPORTS_TO_SEND,
+        fromPubkey: sender.publicKey,
+        toPubkey: receiver,
+        lamports: amount,
     });
 
     transaction.add(sendSOLInstruction);
 
-    const signature = await sendAndConfirmTransaction(connection, transaction, [senderKeypair]);
+    const signature = await sendAndConfirmTransaction(connection, transaction, [sender]);
 
     console.log(
-        `💸 Finished! Sent ${LAMPORTS_TO_SEND} to the address ${receiverPubKey}. `,
+        `💸 Finished! Sent ${amount} to the address ${receiver.toBase58()}. `,
     );
-    console.log(`Transaction signature is ${signature}!`);
+    console.log(`Transaction signature is ${signature}`);
 }
-
-transfer_sol();
